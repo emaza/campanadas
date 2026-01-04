@@ -3,7 +3,7 @@ import audioService from '../services/audioService';
 
 interface GrapeGridProps {
   currentChime: number; // 0 to 12
-  onEat?: () => void;   // Callback for animation
+  onEat?: (grapeElement: HTMLButtonElement) => void;   // Callback for animation
 }
 
 const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat }) => {
@@ -16,7 +16,7 @@ const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat }) => {
     }
   }, [currentChime]);
 
-  const handleGrapeClick = (grapeNumber: number) => {
+  const handleGrapeClick = (grapeNumber: number, grapeElement: HTMLButtonElement) => {
       // Prevent eating twice
       if (eatenGrapes.has(grapeNumber)) return;
 
@@ -26,7 +26,7 @@ const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat }) => {
       newEaten.add(grapeNumber);
       setEatenGrapes(newEaten);
 
-      if (onEat) onEat();
+      if (onEat) onEat(grapeElement);
   };
 
   return (
@@ -52,7 +52,7 @@ const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat }) => {
             return (
             <div key={index} className="flex flex-col items-center justify-center">
                 <button
-                onClick={() => handleGrapeClick(grapeNumber)}
+                onClick={(e) => handleGrapeClick(grapeNumber, e.currentTarget)}
                 className={`
                     w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center
                     transition-all duration-300 transform cursor-pointer active:scale-90
