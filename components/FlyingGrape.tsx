@@ -7,6 +7,8 @@ interface FlyingGrapeProps {
 }
 
 const ANIMATION_DURATION = 500;
+const DELAY_BEFORE_FADE = 100;
+const FADE_DURATION = 200;
 
 const FlyingGrape: React.FC<FlyingGrapeProps> = ({ startPos, endPos, onEnd }) => {
   const [position, setPosition] = useState(startPos);
@@ -18,13 +20,21 @@ const FlyingGrape: React.FC<FlyingGrapeProps> = ({ startPos, endPos, onEnd }) =>
       setPosition(endPos);
     });
 
-    // Disappear and notify parent after animation
-    const timer = setTimeout(() => {
+    // Start fading out after the grape arrives + a delay
+    const fadeTimer = setTimeout(() => {
       setVisible(false);
-      onEnd();
-    }, ANIMATION_DURATION); // Corresponds to animation duration
+    }, ANIMATION_DURATION + DELAY_BEFORE_FADE);
 
-    return () => clearTimeout(timer);
+    // Remove the component after the fade-out is complete
+    const endTimer = setTimeout(() => {
+      onEnd();
+    }, ANIMATION_DURATION + DELAY_BEFORE_FADE + FADE_DURATION);
+
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(endTimer);
+    }
   }, [startPos, endPos, onEnd]);
 
   return (
@@ -35,7 +45,7 @@ const FlyingGrape: React.FC<FlyingGrapeProps> = ({ startPos, endPos, onEnd }) =>
         top: position.y,
         transform: 'translate(-50%, -50%) scale(1)',
         opacity: visible ? 1 : 0,
-        transition: `left ${ANIMATION_DURATION}ms ease-in-out, top ${ANIMATION_DURATION}ms ease-in-out, transform ${ANIMATION_DURATION}ms ease-in-out, opacity 0.2s 0.3s`,
+        transition: `left ${ANIMATION_DURATION}ms ease-in-out, top ${ANIMATION_DURATION}ms ease-in-out, transform ${ANIMATION_DURATION}ms ease-in-out, opacity ${FADE_DURATION}ms ease-out`,
       }}
     />
   );
