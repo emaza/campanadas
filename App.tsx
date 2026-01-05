@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { AppPhase, TimeState } from './types';
 import Clock from './components/Clock';
 import GrapeGrid from './components/GrapeGrid';
@@ -273,9 +273,9 @@ const App: React.FC = () => {
 
   const showFace = phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION;
 
-  const handleAnimationEnd = (id: number) => {
+  const handleAnimationEnd = useCallback((id: number) => {
     setFlyingGrapes(prev => prev.filter(g => g.id !== id));
-  };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-between py-8 px-4 overflow-hidden relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
@@ -284,9 +284,10 @@ const App: React.FC = () => {
         flyingGrapes.map(grape => (
           <FlyingGrape
             key={grape.id}
+            id={grape.id}
             startPos={grape.startPos}
             endPos={grape.endPos}
-            onEnd={() => handleAnimationEnd(grape.id)}
+            onEnd={handleAnimationEnd}
           />
         ))
       }
