@@ -1,15 +1,16 @@
 import React from 'react';
-import { TimeState } from '../types';
 
 interface ClockProps {
-  time: TimeState;
+  hours: number;
+  minutes: number;
+  seconds: number;
 }
 
-const Clock: React.FC<ClockProps> = ({ time }) => {
+const Clock: React.FC<ClockProps> = ({ hours, minutes, seconds }) => {
   // Calculate degrees
-  const secondsDeg = (time.seconds / 60) * 360;
-  const minutesDeg = ((time.minutes + time.seconds / 60) / 60) * 360;
-  const hoursDeg = ((time.hours % 12 + time.minutes / 60) / 12) * 360;
+  const secondsDeg = (seconds / 60) * 360;
+  const minutesDeg = ((minutes + seconds / 60) / 60) * 360;
+  const hoursDeg = ((hours % 12 + minutes / 60) / 12) * 360;
 
   return (
     <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-white rounded-full shadow-[0_0_50px_rgba(255,215,0,0.3)] border-8 border-gray-800 flex items-center justify-center">
@@ -78,4 +79,12 @@ const Clock: React.FC<ClockProps> = ({ time }) => {
   );
 };
 
-export default Clock;
+const areEqual = (prevProps: ClockProps, nextProps: ClockProps) => {
+  return (
+    prevProps.hours === nextProps.hours &&
+    prevProps.minutes === nextProps.minutes &&
+    prevProps.seconds === nextProps.seconds
+  );
+};
+
+export default React.memo(Clock, areEqual);

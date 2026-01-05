@@ -87,4 +87,4 @@ const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat, onEarlyClick
   );
 };
 
-export default GrapeGrid;
+export default React.memo(GrapeGrid);

@@ -104,4 +104,4 @@ const CheekyFace: React.FC<CheekyFaceProps> = ({ grapeCount, isEating, isCelebra
   );
 };
 
-export default CheekyFace;
+export default React.memo(CheekyFace);
