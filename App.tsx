@@ -29,7 +29,7 @@ const App: React.FC = () => {
   const mouthRef = useRef<SVGGElement>(null);
 
   // Helper to trigger eating animation
-  const triggerEatAnim = (grapeElement?: HTMLElement) => {
+  const triggerEatAnim = useCallback((grapeElement?: HTMLElement) => {
     setIsMouthOpen(true);
     if (mouthTimeoutRef.current) clearTimeout(mouthTimeoutRef.current);
     mouthTimeoutRef.current = setTimeout(() => {
@@ -58,7 +58,7 @@ const App: React.FC = () => {
 
       setFlyingGrapes(prev => [...prev, newGrape]);
     }
-  };
+  }, []);
 
   const prevChimeCountRef = useRef(chimeCount);
   useEffect(() => {
@@ -94,12 +94,12 @@ const App: React.FC = () => {
     setFlyingGrapes(prev => prev.filter(g => g.id !== id));
   }, []);
 
-  const showEarlyClickMessage = () => {
+  const showEarlyClickMessage = useCallback(() => {
     setOverlayMessage('Aún no ansioso!!!, espera que empiecen las campanadas.');
     setTimeout(() => {
       setOverlayMessage('');
     }, 2000);
-  };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-between py-8 px-4 overflow-hidden relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
@@ -135,7 +135,7 @@ const App: React.FC = () => {
         {/* Clock & Face Container */}
         <div className="mb-4 relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 transform scale-90 md:scale-100 transition-transform duration-500">
           {/* The Clock is always rendered */}
-          <Clock time={timeState} />
+          <Clock hours={timeState.hours} minutes={timeState.minutes} seconds={timeState.seconds} />
 
           {/* The Face is absolutely positioned ON TOP of the clock, 
                only visible during CHIMES or CELEBRATION */}
@@ -150,7 +150,7 @@ const App: React.FC = () => {
         </div >
 
         {/* Phase Indicator */}
-        < div className="text-center min-h-[5rem] mb-2 flex flex-col items-center justify-center" >
+        < div className="text-center min-h-[5rem] mb-2 flex flex-col items-center justify-center" aria-live="polite" >
           <h2 className={`text-3xl md:text-5xl font-bold text-white transition-all duration-300 ${phase === AppPhase.CHIMES ? 'scale-110 text-yellow-400' : phase === AppPhase.QUARTERS ? 'text-orange-300' : ''}`}>
             {getPhaseText()}
           </h2>
