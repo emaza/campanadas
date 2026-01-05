@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 
 interface FlyingGrapeProps {
+  id: number;
   startPos: { x: number; y: number };
   endPos: { x: number; y: number };
-  onEnd: () => void;
+  onEnd: (id: number) => void;
 }
 
 const ANIMATION_DURATION = 500;
-const DELAY_BEFORE_FADE = 100;
+const DELAY_BEFORE_FADE = 20;
 const FADE_DURATION = 200;
 
-const FlyingGrape: React.FC<FlyingGrapeProps> = ({ startPos, endPos, onEnd }) => {
+const FlyingGrape: React.FC<FlyingGrapeProps> = ({ id, startPos, endPos, onEnd }) => {
   const [position, setPosition] = useState(startPos);
   const [visible, setVisible] = useState(true);
 
@@ -27,7 +28,7 @@ const FlyingGrape: React.FC<FlyingGrapeProps> = ({ startPos, endPos, onEnd }) =>
 
     // Remove the component after the fade-out is complete
     const endTimer = setTimeout(() => {
-      onEnd();
+      onEnd(id);
     }, ANIMATION_DURATION + DELAY_BEFORE_FADE + FADE_DURATION);
 
 
@@ -35,7 +36,7 @@ const FlyingGrape: React.FC<FlyingGrapeProps> = ({ startPos, endPos, onEnd }) =>
       clearTimeout(fadeTimer);
       clearTimeout(endTimer);
     }
-  }, [startPos, endPos, onEnd]);
+  }, [id, startPos, endPos, onEnd]);
 
   return (
     <div
