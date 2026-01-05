@@ -78,14 +78,28 @@ const App: React.FC = () => {
 
   const getPhaseText = () => {
     switch (phase) {
-      case AppPhase.COUNTDOWN: return "CUENTA ATRÁS";
+      case AppPhase.COUNTDOWN: return "CUENTA ATRÁS...";
       case AppPhase.CARILLON: return "BAJA LA BOLA (CARILLÓN)";
       case AppPhase.QUARTERS: return "LOS CUARTOS";
       case AppPhase.GAP: return "ATENTOS...";
-      case AppPhase.CHIMES: return "¡LAS 12 UVAS!";
+      case AppPhase.CHIMES: return "¡A POR LAS 12 UVAS!";
       case AppPhase.CELEBRATION: return "¡FELIZ AÑO 2027!";
       default: return "";
     }
+  };
+
+  const formatCountdown = (ms: number) => {
+    if (ms <= 0) return "00:00:00";
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    if (days > 1) return `${days} días ${timeString}`;
+    if (days === 1) return `1 día ${timeString}`;
+    return timeString;
   };
 
   const showFace = phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION;
@@ -95,10 +109,10 @@ const App: React.FC = () => {
   }, []);
 
   const showEarlyClickMessage = useCallback(() => {
-    setOverlayMessage('Aún no ansioso!!!, espera que empiecen las campanadas.');
+    setOverlayMessage('¡Aún no ansioso!, espera a que empiecen las campanadas.');
     setTimeout(() => {
       setOverlayMessage('');
-    }, 2000);
+    }, 2500);
   }, []);
 
   return (
@@ -125,7 +139,7 @@ const App: React.FC = () => {
       {/* Header */}
       <header className="z-10 text-center mb-2">
         <h1 className="text-2xl md:text-4xl font-bold text-yellow-500 tracking-widest drop-shadow-lg">
-          CAMPANADAS 2026
+          CAMPANADAS 2027
         </h1>
       </header>
 
@@ -158,7 +172,7 @@ const App: React.FC = () => {
             phase === AppPhase.COUNTDOWN && (
               <p className="text-xl md:text-2xl text-slate-400 font-mono mt-1">
                 {timeDiff > 0
-                  ? new Date(timeDiff).toISOString().substr(11, 8)
+                  ? formatCountdown(timeDiff)
                   : "00:00:00"
                 }
               </p>
