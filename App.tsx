@@ -1,16 +1,27 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { AppPhase, TimeState } from './types';
+import { AppPhase, TimeState, FlyingGrapeState, ConfettiFunction } from './types';
 import Clock from './components/Clock';
 import GrapeGrid from './components/GrapeGrid';
 import CheekyFace from './components/CheekyFace';
 import audioService from './services/audioService';
 import FlyingGrape from './components/FlyingGrape';
 import MessageOverlay from './components/MessageOverlay';
+import {
+  TARGET_DATE,
+  CHIME_INTERVAL,
+  T_CARILLON_START,
+  T_QUARTERS_START,
+  T_GAP_START,
+  T_CELEBRATION_START,
+  MOUTH_OPEN_DURATION,
+  FIREWORKS_DURATION,
+  FIREWORKS_COLORS
+} from './config/constants';
 
 // Declaration for canvas-confetti
 declare global {
   interface Window {
-    confetti: any;
+    confetti: ConfettiFunction;
   }
 }
 
@@ -28,35 +39,18 @@ const App: React.FC = () => {
   const [offsetTime, setOffsetTime] = useState<number>(0);
   const [isTestMode, setIsTestMode] = useState(false);
 
-  interface FlyingGrapeState {
-    id: number;
-    startPos: { x: number; y: number };
-    endPos: { x: number; y: number };
-  }
-
   // Logic State
   const [chimeCount, setChimeCount] = useState(0);
   const [isMouthOpen, setIsMouthOpen] = useState(false);
   const [flyingGrapes, setFlyingGrapes] = useState<FlyingGrapeState[]>([]);
   const [overlayMessage, setOverlayMessage] = useState<string>('');
 
-  // Constants
-  // Use local time for the target date so it works worldwide (Device Time)
-  const TARGET_DATE = new Date(2027, 0, 1, 0, 0, 0);
-  const CHIME_INTERVAL = 3000; // 3 seconds per chime
-
-  // Thresholds (relative to target time 0)
-  const T_CARILLON_START = -35000;
-  const T_QUARTERS_START = -20000;
-  const T_GAP_START = -5000;
-  const T_CELEBRATION = 12 * CHIME_INTERVAL;
-
   // Refs for tracking audio events without render lag
   const prevPhaseRef = useRef<AppPhase>(AppPhase.COUNTDOWN);
   const prevChimeIndexRef = useRef<number>(-1);
   const prevQuarterIndexRef = useRef<number>(-1);
   const carillonPlayedRef = useRef<boolean>(false);
-  const mouthTimeoutRef = useRef<any>(null);
+  const mouthTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mouthRef = useRef<SVGGElement>(null);
 
   // Helper to trigger eating animation
@@ -65,7 +59,7 @@ const App: React.FC = () => {
     if (mouthTimeoutRef.current) clearTimeout(mouthTimeoutRef.current);
     mouthTimeoutRef.current = setTimeout(() => {
       setIsMouthOpen(false);
-    }, 300); // Mouth stays open for 300ms
+    }, MOUTH_OPEN_DURATION); // Mouth stays open for 300ms
 
     if (grapeElement && mouthRef.current) {
       const grapeRect = grapeElement.getBoundingClientRect();
@@ -136,7 +130,7 @@ const App: React.FC = () => {
         currentPhase = AppPhase.GAP;
       } else {
         const msSinceMidnight = Math.abs(timeDiff);
-        if (msSinceMidnight < T_CELEBRATION) {
+        if (msSinceMidnight < T_CELEBRATION_START) {
           currentPhase = AppPhase.CHIMES;
         } else {
           currentPhase = AppPhase.CELEBRATION;
@@ -206,8 +200,7 @@ const App: React.FC = () => {
   }, [offsetTime]);
 
   const triggerFireworks = () => {
-    const duration = 15 * 1000;
-    const animationEnd = Date.now() + duration;
+    const animationEnd = Date.now() + FIREWORKS_DURATION;
 
     const randomInRange = (min: number, max: number) => {
       return Math.random() * (max - min) + min;
@@ -237,7 +230,7 @@ const App: React.FC = () => {
             zIndex: 0,
             particleCount,
             origin,
-            colors: ['#FFD700', '#FF0000', '#FFFFFF', '#00FF00', '#0000FF']
+            colors: FIREWORKS_COLORS
           });
         }
 
