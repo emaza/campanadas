@@ -1,55 +1,30 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { AppPhase, TimeState, FlyingGrapeState, ConfettiFunction } from './types';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { AppPhase, FlyingGrapeState } from './types';
 import Clock from './components/Clock';
 import GrapeGrid from './components/GrapeGrid';
 import CheekyFace from './components/CheekyFace';
-import audioService from './services/audioService';
 import FlyingGrape from './components/FlyingGrape';
 import MessageOverlay from './components/MessageOverlay';
-import {
-  TARGET_DATE,
-  CHIME_INTERVAL,
-  T_CARILLON_START,
-  T_QUARTERS_START,
-  T_GAP_START,
-  T_CELEBRATION_START,
-  MOUTH_OPEN_DURATION,
-  FIREWORKS_DURATION,
-  FIREWORKS_COLORS
-} from './config/constants';
-
-// Declaration for canvas-confetti
-declare global {
-  interface Window {
-    confetti: ConfettiFunction;
-  }
-}
+import { useCampanadasTimer } from './hooks/useCampanadasTimer';
+import { useAudioController } from './hooks/useAudioController';
+import { useFireworks } from './hooks/useFireworks';
+import { TARGET_DATE, MOUTH_OPEN_DURATION } from './config/constants';
+import audioService from './services/audioService';
 
 const App: React.FC = () => {
-  const [phase, setPhase] = useState<AppPhase>(AppPhase.COUNTDOWN);
-  const [timeState, setTimeState] = useState<TimeState>({
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-    milliseconds: 0,
-    totalSecondsLeft: 100000
-  });
-
   // Test mode offset
   const [offsetTime, setOffsetTime] = useState<number>(0);
+  const { phase, timeState, chimeCount, timeDiff } = useCampanadasTimer({ offsetTime });
+
+  useAudioController({ phase, timeDiff });
+  useFireworks({ phase });
   const [isTestMode, setIsTestMode] = useState(false);
 
   // Logic State
-  const [chimeCount, setChimeCount] = useState(0);
   const [isMouthOpen, setIsMouthOpen] = useState(false);
   const [flyingGrapes, setFlyingGrapes] = useState<FlyingGrapeState[]>([]);
   const [overlayMessage, setOverlayMessage] = useState<string>('');
 
-  // Refs for tracking audio events without render lag
-  const prevPhaseRef = useRef<AppPhase>(AppPhase.COUNTDOWN);
-  const prevChimeIndexRef = useRef<number>(-1);
-  const prevQuarterIndexRef = useRef<number>(-1);
-  const carillonPlayedRef = useRef<boolean>(false);
   const mouthTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mouthRef = useRef<SVGGElement>(null);
 
@@ -85,162 +60,13 @@ const App: React.FC = () => {
     }
   };
 
-  // Resume Audio Context interaction
+  const prevChimeCountRef = useRef(chimeCount);
   useEffect(() => {
-    const resumeAudio = () => {
-      audioService.init();
-    };
-    window.addEventListener('click', resumeAudio);
-    window.addEventListener('touchstart', resumeAudio);
-    return () => {
-      window.removeEventListener('click', resumeAudio);
-      window.removeEventListener('touchstart', resumeAudio);
-    };
-  }, []);
-
-  // Animation Loop
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updateTime = () => {
-      const now = Date.now() + offsetTime;
-      const visualDate = new Date(now);
-
-      // Update Visual State
-      setTimeState({
-        hours: visualDate.getHours(),
-        minutes: visualDate.getMinutes(),
-        seconds: visualDate.getSeconds(),
-        milliseconds: visualDate.getMilliseconds(),
-        totalSecondsLeft: 0
-      });
-
-      // Time difference
-      const timeDiff = TARGET_DATE.getTime() - now;
-      let currentPhase = AppPhase.COUNTDOWN;
-
-      // Determine Phase
-      if (timeDiff > Math.abs(T_CARILLON_START)) {
-        currentPhase = AppPhase.COUNTDOWN;
-      } else if (timeDiff > Math.abs(T_QUARTERS_START)) {
-        currentPhase = AppPhase.CARILLON;
-      } else if (timeDiff > Math.abs(T_GAP_START)) {
-        currentPhase = AppPhase.QUARTERS;
-      } else if (timeDiff > 0) {
-        currentPhase = AppPhase.GAP;
-      } else {
-        const msSinceMidnight = Math.abs(timeDiff);
-        if (msSinceMidnight < T_CELEBRATION_START) {
-          currentPhase = AppPhase.CHIMES;
-        } else {
-          currentPhase = AppPhase.CELEBRATION;
-        }
-      }
-
-      setPhase(currentPhase);
-
-      // --- AUDIO LOGIC ---
-
-      // 1. Phase Transitions
-      if (prevPhaseRef.current !== currentPhase) {
-        if (currentPhase === AppPhase.CELEBRATION) {
-          triggerFireworks();
-          audioService.playCelebrationCrowd();
-        }
-        if (currentPhase === AppPhase.CARILLON) {
-          if (!carillonPlayedRef.current) {
-            audioService.playCarillon();
-            carillonPlayedRef.current = true;
-          }
-        }
-        if (currentPhase === AppPhase.COUNTDOWN) {
-          carillonPlayedRef.current = false;
-          prevQuarterIndexRef.current = -1;
-          prevChimeIndexRef.current = -1;
-          setChimeCount(0);
-        }
-        prevPhaseRef.current = currentPhase;
-      }
-
-      // 2. Quarters Logic
-      if (currentPhase === AppPhase.QUARTERS) {
-        const progress = Math.abs(T_QUARTERS_START) - timeDiff;
-        const quarterIdx = Math.floor(progress / 3500);
-
-        if (quarterIdx >= 0 && quarterIdx < 4 && quarterIdx !== prevQuarterIndexRef.current) {
-          audioService.playQuarter();
-          prevQuarterIndexRef.current = quarterIdx;
-        }
-      }
-
-      // 3. Chimes Logic
-      if (currentPhase === AppPhase.CHIMES) {
-        const msSinceMidnight = Math.abs(timeDiff);
-        const currentChimeIndex = Math.floor(msSinceMidnight / CHIME_INTERVAL);
-
-        setChimeCount(currentChimeIndex + 1);
-
-        if (currentChimeIndex !== prevChimeIndexRef.current && currentChimeIndex < 12) {
-          audioService.playChime();
-          // Trigger mouth animation on auto chime
-          triggerEatAnim(undefined);
-          prevChimeIndexRef.current = currentChimeIndex;
-        }
-      } else if (currentPhase !== AppPhase.CELEBRATION) {
-        if (currentPhase === AppPhase.COUNTDOWN) {
-          setChimeCount(0);
-        }
-      }
-
-      animationFrameId = requestAnimationFrame(updateTime);
-    };
-
-    updateTime();
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [offsetTime]);
-
-  const triggerFireworks = () => {
-    const animationEnd = Date.now() + FIREWORKS_DURATION;
-
-    const randomInRange = (min: number, max: number) => {
-      return Math.random() * (max - min) + min;
-    };
-
-    const interval = setInterval(() => {
-      const timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
-      const burstCount = Math.floor(Math.random() * 2) + 1;
-
-      for (let i = 0; i < burstCount; i++) {
-        const particleCount = Math.floor(randomInRange(30, 60));
-        const origin = {
-          x: randomInRange(0.1, 0.9),
-          y: Math.random() * 0.5
-        };
-
-        if (window.confetti) {
-          window.confetti({
-            startVelocity: 30,
-            spread: 360,
-            ticks: 60,
-            zIndex: 0,
-            particleCount,
-            origin,
-            colors: FIREWORKS_COLORS
-          });
-        }
-
-        setTimeout(() => {
-          audioService.playFireworkExplosion();
-        }, Math.random() * 100);
-      }
-
-    }, 800);
-  };
+    if (chimeCount > 0 && chimeCount !== prevChimeCountRef.current) {
+      triggerEatAnim(undefined);
+      prevChimeCountRef.current = chimeCount;
+    }
+  }, [chimeCount]);
 
   const startTest = () => {
     audioService.init();
@@ -248,10 +74,6 @@ const App: React.FC = () => {
     const now = Date.now();
     const target = TARGET_DATE.getTime();
     setOffsetTime(target - 40000 - now);
-
-    prevChimeIndexRef.current = -1;
-    prevQuarterIndexRef.current = -1;
-    carillonPlayedRef.current = false;
   };
 
   const getPhaseText = () => {
@@ -335,8 +157,8 @@ const App: React.FC = () => {
           {
             phase === AppPhase.COUNTDOWN && (
               <p className="text-xl md:text-2xl text-slate-400 font-mono mt-1">
-                {TARGET_DATE.getTime() - (Date.now() + offsetTime) > 0
-                  ? new Date(TARGET_DATE.getTime() - (Date.now() + offsetTime)).toISOString().substr(11, 8)
+                {timeDiff > 0
+                  ? new Date(timeDiff).toISOString().substr(11, 8)
                   : "00:00:00"
                 }
               </p>

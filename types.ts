@@ -40,3 +40,10 @@ export type ConfettiFunction = (options?: {
   resize?: boolean;
   canvas?: HTMLCanvasElement;
 }) => void;
+
+// Declaration for canvas-confetti
+declare global {
+  interface Window {
+    confetti: ConfettiFunction;
+  }
+}
