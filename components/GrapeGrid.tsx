@@ -19,20 +19,23 @@ const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat, onEarlyClick
   }, [currentChime]);
 
   const handleGrapeClick = (grapeNumber: number, grapeElement: HTMLButtonElement) => {
-    if (phase !== AppPhase.CHIMES) {
+    if (phase < AppPhase.CHIMES) {
       if (onEarlyClick) onEarlyClick();
       return;
     }
 
-    if (eatenGrapes.has(grapeNumber)) return;
+    // Only allow eating during the chimes phase
+    if (phase === AppPhase.CHIMES) {
+      if (eatenGrapes.has(grapeNumber)) return;
 
-    audioService.playGulp();
+      audioService.playGulp();
 
-    const newEaten = new Set(eatenGrapes);
-    newEaten.add(grapeNumber);
-    setEatenGrapes(newEaten);
+      const newEaten = new Set(eatenGrapes);
+      newEaten.add(grapeNumber);
+      setEatenGrapes(newEaten);
 
-    if (onEat) onEat(grapeElement);
+      if (onEat) onEat(grapeElement);
+    }
   };
 
   return (

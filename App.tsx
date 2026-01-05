@@ -268,7 +268,7 @@ const App: React.FC = () => {
       case AppPhase.QUARTERS: return "LOS CUARTOS";
       case AppPhase.GAP: return "ATENTOS...";
       case AppPhase.CHIMES: return "¡LAS 12 UVAS!";
-      case AppPhase.CELEBRATION: return "¡FELIZ AÑO 2026!";
+      case AppPhase.CELEBRATION: return "¡FELIZ AÑO 2027!";
       default: return "";
     }
   };
@@ -369,12 +369,14 @@ const App: React.FC = () => {
       {/* Footer / Controls */}
       < footer className="z-10 flex flex-col items-center gap-4 mb-4" >
         {!isTestMode && (
-          <button
-            onClick={startTest}
-            className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 rounded-full text-sm transition-all hover:scale-105 active:scale-95 uppercase tracking-wider"
-          >
-            Simular Campanadas (Test)
-          </button>
+          <>
+            <button
+              onClick={startTest}
+              className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 rounded-full text-sm transition-all hover:scale-105 active:scale-95 uppercase tracking-wider"
+            >
+              Simular Campanadas (Test)
+            </button>
+          </>
         )}
       </footer >
 
