@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import audioService from '../services/audioService';
+import { AppPhase } from '../types';
 
 interface GrapeGridProps {
-  currentChime: number; // 0 to 12
-  onEat?: (grapeElement: HTMLButtonElement) => void;   // Callback for animation
+  currentChime: number;
+  onEat?: (grapeElement: HTMLButtonElement) => void;
+  onEarlyClick?: () => void;
+  phase: AppPhase;
 }
 
-const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat }) => {
+const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat, onEarlyClick, phase }) => {
   const [eatenGrapes, setEatenGrapes] = useState<Set<number>>(new Set());
 
-  // Reset eaten state when chime count resets (e.g. restart test or new year reset)
   useEffect(() => {
     if (currentChime === 0) {
       setEatenGrapes(new Set());
@@ -17,16 +19,23 @@ const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat }) => {
   }, [currentChime]);
 
   const handleGrapeClick = (grapeNumber: number, grapeElement: HTMLButtonElement) => {
-      // Prevent eating twice
+    if (phase < AppPhase.CHIMES) {
+      if (onEarlyClick) onEarlyClick();
+      return;
+    }
+
+    // Only allow eating during the chimes phase
+    if (phase === AppPhase.CHIMES) {
       if (eatenGrapes.has(grapeNumber)) return;
 
       audioService.playGulp();
-      
+
       const newEaten = new Set(eatenGrapes);
       newEaten.add(grapeNumber);
       setEatenGrapes(newEaten);
 
       if (onEat) onEat(grapeElement);
+    }
   };
 
   return (
