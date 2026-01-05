@@ -5,6 +5,7 @@ import GrapeGrid from './components/GrapeGrid';
 import CheekyFace from './components/CheekyFace';
 import audioService from './services/audioService';
 import FlyingGrape from './components/FlyingGrape';
+import MessageOverlay from './components/MessageOverlay';
 
 // Declaration for canvas-confetti
 declare global {
@@ -37,6 +38,7 @@ const App: React.FC = () => {
   const [chimeCount, setChimeCount] = useState(0);
   const [isMouthOpen, setIsMouthOpen] = useState(false);
   const [flyingGrapes, setFlyingGrapes] = useState<FlyingGrapeState[]>([]);
+  const [overlayMessage, setOverlayMessage] = useState<string>('');
 
   // Constants
   // Use local time for the target date so it works worldwide (Device Time)
@@ -277,6 +279,13 @@ const App: React.FC = () => {
     setFlyingGrapes(prev => prev.filter(g => g.id !== id));
   }, []);
 
+  const showEarlyClickMessage = () => {
+    setOverlayMessage('Aún no ansioso!!!, espera que empiecen las campanadas.');
+    setTimeout(() => {
+      setOverlayMessage('');
+    }, 2000);
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-between py-8 px-4 overflow-hidden relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
 
@@ -342,10 +351,18 @@ const App: React.FC = () => {
           }
         </div >
 
-        {/* Grapes Grid */}
-        < div className={`transition-opacity duration-1000 ${phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION || phase === AppPhase.GAP ? 'opacity-100' : 'opacity-20'}`}>
-          <GrapeGrid currentChime={chimeCount} onEat={triggerEatAnim} />
-        </div >
+        {/* Grapes Grid & Message Overlay Container */}
+        <div className="relative">
+          <div className={`transition-opacity duration-1000 ${phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION || phase === AppPhase.GAP ? 'opacity-100' : 'opacity-20'}`}>
+            <GrapeGrid
+              currentChime={chimeCount}
+              onEat={triggerEatAnim}
+              phase={phase}
+              onEarlyClick={showEarlyClickMessage}
+            />
+          </div>
+          <MessageOverlay message={overlayMessage} isVisible={!!overlayMessage} />
+        </div>
 
       </main >
 
