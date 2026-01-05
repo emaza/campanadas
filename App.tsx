@@ -88,6 +88,20 @@ const App: React.FC = () => {
     }
   };
 
+  const formatCountdown = (ms: number) => {
+    if (ms <= 0) return "00:00:00";
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    if (days > 1) return `${days} días ${timeString}`;
+    if (days === 1) return `1 día ${timeString}`;
+    return timeString;
+  };
+
   const showFace = phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION;
 
   const handleAnimationEnd = useCallback((id: number) => {
@@ -158,7 +172,7 @@ const App: React.FC = () => {
             phase === AppPhase.COUNTDOWN && (
               <p className="text-xl md:text-2xl text-slate-400 font-mono mt-1">
                 {timeDiff > 0
-                  ? new Date(timeDiff).toISOString().substr(11, 8)
+                  ? formatCountdown(timeDiff)
                   : "00:00:00"
                 }
               </p>
