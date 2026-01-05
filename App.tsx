@@ -4,6 +4,7 @@ import Clock from './components/Clock';
 import GrapeGrid from './components/GrapeGrid';
 import CheekyFace from './components/CheekyFace';
 import audioService from './services/audioService';
+import FlyingGrape from './components/FlyingGrape';
 
 // Declaration for canvas-confetti
 declare global {
@@ -26,13 +27,20 @@ const App: React.FC = () => {
   const [offsetTime, setOffsetTime] = useState<number>(0);
   const [isTestMode, setIsTestMode] = useState(false);
 
+  interface FlyingGrapeState {
+    id: number;
+    startPos: { x: number; y: number };
+    endPos: { x: number; y: number };
+  }
+
   // Logic State
   const [chimeCount, setChimeCount] = useState(0);
   const [isMouthOpen, setIsMouthOpen] = useState(false);
+  const [flyingGrapes, setFlyingGrapes] = useState<FlyingGrapeState[]>([]);
 
   // Constants
   // Use local time for the target date so it works worldwide (Device Time)
-  const TARGET_DATE = new Date(2026, 0, 1, 0, 0, 0);
+  const TARGET_DATE = new Date(2027, 0, 1, 0, 0, 0);
   const CHIME_INTERVAL = 3000; // 3 seconds per chime
 
   // Thresholds (relative to target time 0)
@@ -47,14 +55,38 @@ const App: React.FC = () => {
   const prevQuarterIndexRef = useRef<number>(-1);
   const carillonPlayedRef = useRef<boolean>(false);
   const mouthTimeoutRef = useRef<any>(null);
+  const mouthRef = useRef<SVGGElement>(null);
 
   // Helper to trigger eating animation
-  const triggerEatAnim = () => {
+  const triggerEatAnim = (grapeElement?: HTMLElement) => {
     setIsMouthOpen(true);
     if (mouthTimeoutRef.current) clearTimeout(mouthTimeoutRef.current);
     mouthTimeoutRef.current = setTimeout(() => {
       setIsMouthOpen(false);
     }, 300); // Mouth stays open for 300ms
+
+    if (grapeElement && mouthRef.current) {
+      const grapeRect = grapeElement.getBoundingClientRect();
+      const mouthRect = mouthRef.current.getBoundingClientRect();
+
+      const startPos = {
+        x: grapeRect.left + grapeRect.width / 2,
+        y: grapeRect.top + grapeRect.height / 2,
+      };
+
+      const endPos = {
+        x: mouthRect.left + mouthRect.width / 2,
+        y: mouthRect.top + mouthRect.height / 2,
+      };
+
+      const newGrape = {
+        id: Date.now(),
+        startPos,
+        endPos,
+      };
+
+      setFlyingGrapes(prev => [...prev, newGrape]);
+    }
   };
 
   // Resume Audio Context interaction
@@ -155,7 +187,7 @@ const App: React.FC = () => {
         if (currentChimeIndex !== prevChimeIndexRef.current && currentChimeIndex < 12) {
           audioService.playChime();
           // Trigger mouth animation on auto chime
-          triggerEatAnim();
+          triggerEatAnim(undefined);
           prevChimeIndexRef.current = currentChimeIndex;
         }
       } else if (currentPhase !== AppPhase.CELEBRATION) {
@@ -241,8 +273,23 @@ const App: React.FC = () => {
 
   const showFace = phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION;
 
+  const handleAnimationEnd = (id: number) => {
+    setFlyingGrapes(prev => prev.filter(g => g.id !== id));
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-between py-8 px-4 overflow-hidden relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+
+      {
+        flyingGrapes.map(grape => (
+          <FlyingGrape
+            key={grape.id}
+            startPos={grape.startPos}
+            endPos={grape.endPos}
+            onEnd={() => handleAnimationEnd(grape.id)}
+          />
+        ))
+      }
 
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
@@ -272,34 +319,37 @@ const App: React.FC = () => {
               grapeCount={chimeCount}
               isEating={isMouthOpen}
               isCelebrating={phase === AppPhase.CELEBRATION}
+              mouthRef={mouthRef}
             />
           </div>
-        </div>
+        </div >
 
         {/* Phase Indicator */}
-        <div className="text-center min-h-[5rem] mb-2 flex flex-col items-center justify-center">
+        < div className="text-center min-h-[5rem] mb-2 flex flex-col items-center justify-center" >
           <h2 className={`text-3xl md:text-5xl font-bold text-white transition-all duration-300 ${phase === AppPhase.CHIMES ? 'scale-110 text-yellow-400' : phase === AppPhase.QUARTERS ? 'text-orange-300' : ''}`}>
             {getPhaseText()}
           </h2>
-          {phase === AppPhase.COUNTDOWN && (
-            <p className="text-xl md:text-2xl text-slate-400 font-mono mt-1">
-              {TARGET_DATE.getTime() - (Date.now() + offsetTime) > 0
-                ? new Date(TARGET_DATE.getTime() - (Date.now() + offsetTime)).toISOString().substr(11, 8)
-                : "00:00:00"
-              }
-            </p>
-          )}
-        </div>
+          {
+            phase === AppPhase.COUNTDOWN && (
+              <p className="text-xl md:text-2xl text-slate-400 font-mono mt-1">
+                {TARGET_DATE.getTime() - (Date.now() + offsetTime) > 0
+                  ? new Date(TARGET_DATE.getTime() - (Date.now() + offsetTime)).toISOString().substr(11, 8)
+                  : "00:00:00"
+                }
+              </p>
+            )
+          }
+        </div >
 
         {/* Grapes Grid */}
-        <div className={`transition-opacity duration-1000 ${phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION || phase === AppPhase.GAP ? 'opacity-100' : 'opacity-20'}`}>
+        < div className={`transition-opacity duration-1000 ${phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION || phase === AppPhase.GAP ? 'opacity-100' : 'opacity-20'}`}>
           <GrapeGrid currentChime={chimeCount} onEat={triggerEatAnim} />
-        </div>
+        </div >
 
-      </main>
+      </main >
 
       {/* Footer / Controls */}
-      <footer className="z-10 flex flex-col items-center gap-4 mb-4">
+      < footer className="z-10 flex flex-col items-center gap-4 mb-4" >
         {!isTestMode && (
           <button
             onClick={startTest}
@@ -308,9 +358,9 @@ const App: React.FC = () => {
             Simular Campanadas (Test)
           </button>
         )}
-      </footer>
+      </footer >
 
-    </div>
+    </div >
   );
 };
 

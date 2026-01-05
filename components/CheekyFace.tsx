@@ -4,9 +4,10 @@ interface CheekyFaceProps {
   grapeCount: number; // 0 to 12
   isEating: boolean;  // Triggers mouth open animation
   isCelebrating?: boolean; // Triggers kissing animation and cheek reset
+  mouthRef?: React.RefObject<SVGGElement>;
 }
 
-const CheekyFace: React.FC<CheekyFaceProps> = ({ grapeCount, isEating, isCelebrating }) => {
+const CheekyFace: React.FC<CheekyFaceProps> = ({ grapeCount, isEating, isCelebrating, mouthRef }) => {
   // Cap the count visually at 12
   // If celebrating, reset cheeks to normal size (count 0)
   const safeCount = isCelebrating ? 0 : Math.min(Math.max(grapeCount, 0), 12);
@@ -95,7 +96,7 @@ const CheekyFace: React.FC<CheekyFaceProps> = ({ grapeCount, isEating, isCelebra
         <path d="M 120 55 Q 135 40 150 55" stroke="#1e293b" strokeWidth="4" fill="none" style={{ transform: `translateY(${safeCount * -2}px)` }} />
 
         {/* Mouth */}
-         <g style={{ transform: `translate(100px, 140px) scale(${mouthScale}) translate(-100px, -140px)` }} className="transition-transform duration-300">
+         <g ref={mouthRef} style={{ transform: `translate(100px, 140px) scale(${mouthScale}) translate(-100px, -140px)` }} className="transition-transform duration-300">
            {mouthElement}
          </g>
       </svg>
