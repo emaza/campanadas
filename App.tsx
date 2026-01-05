@@ -78,11 +78,11 @@ const App: React.FC = () => {
 
   const getPhaseText = () => {
     switch (phase) {
-      case AppPhase.COUNTDOWN: return "CUENTA ATRÁS";
+      case AppPhase.COUNTDOWN: return "CUENTA ATRÁS...";
       case AppPhase.CARILLON: return "BAJA LA BOLA (CARILLÓN)";
       case AppPhase.QUARTERS: return "LOS CUARTOS";
       case AppPhase.GAP: return "ATENTOS...";
-      case AppPhase.CHIMES: return "¡LAS 12 UVAS!";
+      case AppPhase.CHIMES: return "¡A POR LAS 12 UVAS!";
       case AppPhase.CELEBRATION: return "¡FELIZ AÑO 2027!";
       default: return "";
     }
@@ -95,10 +95,10 @@ const App: React.FC = () => {
   }, []);
 
   const showEarlyClickMessage = useCallback(() => {
-    setOverlayMessage('Aún no ansioso!!!, espera que empiecen las campanadas.');
+    setOverlayMessage('¡Aún no ansioso!, espera a que empiecen las campanadas.');
     setTimeout(() => {
       setOverlayMessage('');
-    }, 2000);
+    }, 2500);
   }, []);
 
   return (
@@ -125,7 +125,7 @@ const App: React.FC = () => {
       {/* Header */}
       <header className="z-10 text-center mb-2">
         <h1 className="text-2xl md:text-4xl font-bold text-yellow-500 tracking-widest drop-shadow-lg">
-          CAMPANADAS 2026
+          CAMPANADAS 2027
         </h1>
       </header>
 
