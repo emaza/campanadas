@@ -1,0 +1,46 @@
+name: Bump Version
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Determine Bump Type
+        id: bump
+        run: |
+          # Obtenemos el mensaje del último commit (el del merge)
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Ultimo mensaje: $COMMIT_MSG"
+          
+          # Lógica de decisión
+          if [[ "$COMMIT_MSG" == feat:* ]]; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif [[ "$COMMIT_MSG" == fix:* ]]; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "type=patch" >> $GITHUB_OUTPUT # Por defecto si no detecta nada
+          fi
+
+      - name: Increment Version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Usamos la salida del paso anterior
+          npm version ${{ steps.bump.outputs.type }} -m "chore: bump version to %s [skip ci]"
+          
+          git push

@@ -11,6 +11,9 @@ import { useFireworks } from './hooks/useFireworks';
 import { TARGET_DATE, MOUTH_OPEN_DURATION } from './config/constants';
 import audioService from './services/audioService';
 
+declare const __APP_VERSION__: string;
+const appVersion = __APP_VERSION__;
+
 const App: React.FC = () => {
   // Test mode offset
   const [offsetTime, setOffsetTime] = useState<number>(0);
@@ -193,6 +196,9 @@ const App: React.FC = () => {
             </button>
           </>
         )}
+
+        <p className="text-sm text-slate-400">Version: {appVersion}</p>
+
       </footer >
 
     </div >
