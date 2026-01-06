@@ -12,7 +12,6 @@ import { TARGET_DATE, MOUTH_OPEN_DURATION } from './config/constants';
 import audioService from './services/audioService';
 
 declare const __APP_VERSION__: string;
-const appVersion = __APP_VERSION__;
 
 const App: React.FC = () => {
   // Test mode offset
@@ -197,7 +196,7 @@ const App: React.FC = () => {
           </>
         )}
 
-        <p className="text-sm text-slate-400">Version: {appVersion}</p>
+        <p className="text-sm text-slate-400">Version: {__APP_VERSION__}</p>
 
       </footer >
 
