@@ -9,7 +9,7 @@ export const T_GAP_START = -5000;
 export const T_CELEBRATION_START = 12 * CHIME_INTERVAL; // Start of celebration phase
 
 // MOUTH ANIMATION
-export const MOUTH_OPEN_DURATION = 300; // ms
+export const MOUTH_OPEN_DURATION = 1000; // ms
 
 // FIREWORKS CONFIGURATION
 export const FIREWORKS_DURATION = 15 * 1000; // 15 seconds

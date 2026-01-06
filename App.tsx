@@ -24,49 +24,47 @@ const App: React.FC = () => {
   const [isMouthOpen, setIsMouthOpen] = useState(false);
   const [flyingGrapes, setFlyingGrapes] = useState<FlyingGrapeState[]>([]);
   const [overlayMessage, setOverlayMessage] = useState<string>('');
+  const [eatenGrapesOrder, setEatenGrapesOrder] = useState<number[]>([]);
+  const [grapeStatus, setGrapeStatus] = useState<Record<number, 'correct' | 'incorrect'>>({});
+  const [lastCorrectChime, setLastCorrectChime] = useState<number>(0);
 
   const mouthTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mouthRef = useRef<SVGGElement>(null);
 
-  // Helper to trigger eating animation
-  const triggerEatAnim = useCallback((grapeElement?: HTMLElement) => {
+  const onGrapeClick = useCallback((grapeNumber: number, grapeElement: HTMLElement) => {
+    // Prevent clicking same grape twice
+    if (grapeStatus[grapeNumber]) return;
+
+    // 1. Trigger visual animation for eating
     setIsMouthOpen(true);
     if (mouthTimeoutRef.current) clearTimeout(mouthTimeoutRef.current);
-    mouthTimeoutRef.current = setTimeout(() => {
-      setIsMouthOpen(false);
-    }, MOUTH_OPEN_DURATION); // Mouth stays open for 300ms
+    mouthTimeoutRef.current = setTimeout(() => setIsMouthOpen(false), MOUTH_OPEN_DURATION);
 
-    if (grapeElement && mouthRef.current) {
+    if (mouthRef.current) {
       const grapeRect = grapeElement.getBoundingClientRect();
       const mouthRect = mouthRef.current.getBoundingClientRect();
-
-      const startPos = {
-        x: grapeRect.left + grapeRect.width / 2,
-        y: grapeRect.top + grapeRect.height / 2,
-      };
-
-      const endPos = {
-        x: mouthRect.left + mouthRect.width / 2,
-        y: mouthRect.top + mouthRect.height / 2,
-      };
-
-      const newGrape = {
-        id: Date.now(),
-        startPos,
-        endPos,
-      };
-
-      setFlyingGrapes(prev => [...prev, newGrape]);
+      const startPos = { x: grapeRect.left + grapeRect.width / 2, y: grapeRect.top + grapeRect.height / 2 };
+      const endPos = { x: mouthRect.left + mouthRect.width / 2, y: mouthRect.top + mouthRect.height / 2 };
+      setFlyingGrapes(prev => [...prev, { id: Date.now(), startPos, endPos }]);
     }
-  }, []);
 
-  const prevChimeCountRef = useRef(chimeCount);
-  useEffect(() => {
-    if (chimeCount > 0 && chimeCount !== prevChimeCountRef.current) {
-      triggerEatAnim(undefined);
-      prevChimeCountRef.current = chimeCount;
+    // 2. Scoring Logic
+    const msSinceMidnight = Math.abs(timeDiff);
+    const currentChime = Math.floor(msSinceMidnight / 3000) + 1;
+    const currentChimeStart = (currentChime - 1) * 3000;
+    const isClickInTime = msSinceMidnight >= currentChimeStart && msSinceMidnight < currentChimeStart + MOUTH_OPEN_DURATION;
+
+    const isCorrect = isClickInTime && currentChime > lastCorrectChime;
+
+    if (isCorrect) {
+      setLastCorrectChime(currentChime);
     }
-  }, [chimeCount]);
+
+    setEatenGrapesOrder(prev => [...prev, grapeNumber]);
+    setGrapeStatus(prev => ({ ...prev, [grapeNumber]: isCorrect ? 'correct' : 'incorrect' }));
+
+  }, [timeDiff, grapeStatus, lastCorrectChime]);
+
 
   const startTest = () => {
     audioService.init();
@@ -117,6 +115,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-between py-8 px-4 overflow-hidden relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+
 
       {
         flyingGrapes.map(grape => (
@@ -185,9 +184,10 @@ const App: React.FC = () => {
           <div className={`transition-opacity duration-1000 ${phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION || phase === AppPhase.GAP ? 'opacity-100' : 'opacity-20'}`}>
             <GrapeGrid
               currentChime={chimeCount}
-              onEat={triggerEatAnim}
+              onEat={onGrapeClick}
               phase={phase}
               onEarlyClick={showEarlyClickMessage}
+              grapeStatus={grapeStatus}
             />
           </div>
           <MessageOverlay message={overlayMessage} isVisible={!!overlayMessage} />
