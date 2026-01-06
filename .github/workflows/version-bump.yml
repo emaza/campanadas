@@ -41,6 +41,12 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
           # Usamos la salida del paso anterior
-          npm version ${{ steps.bump.outputs.type }} -m "chore: bump version to %s [skip ci]"
+          npm version ${{ steps.bump.outputs.type }} -m "chore: bump version to %s [skip ci]" || {
+            echo "Failed to bump version"
+            exit 1
+          }
           
-          git push
+          git push origin main || {
+            echo "Failed to push changes"
+            exit 1
+          }
