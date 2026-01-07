@@ -50,7 +50,7 @@ jobs:
             exit 1
           }
           
-          git push origin main || {
+          git push origin main --follow-tags || {
             echo "Failed to push changes"
             exit 1
           }
