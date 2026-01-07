@@ -1,11 +1,36 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface MessageOverlayProps {
   message: string;
-  isVisible: boolean;
+  duration?: number;
+  onClose: () => void;
 }
 
-const MessageOverlay: React.FC<MessageOverlayProps> = ({ message, isVisible }) => {
+const MessageOverlay: React.FC<MessageOverlayProps> = ({ message, duration = 0, onClose }) => {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Clear any existing timer if a new message comes in
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    if (message && duration > 0) {
+      timerRef.current = setTimeout(() => {
+        onClose();
+      }, duration);
+    }
+
+    // Cleanup function to clear timeout if the component unmounts or props change
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [message, duration, onClose]);
+
+  const isVisible = !!message;
+
   return (
     <div
       className={`
@@ -13,6 +38,7 @@ const MessageOverlay: React.FC<MessageOverlayProps> = ({ message, isVisible }) =
         transition-opacity duration-300 ease-in-out
         ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
       `}
+      aria-live="assertive"
     >
       <div
         className="

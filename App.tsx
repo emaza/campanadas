@@ -1,17 +1,28 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { AppPhase, FlyingGrapeState } from './types';
 import Clock from './components/Clock';
 import GrapeGrid from './components/GrapeGrid';
 import CheekyFace from './components/CheekyFace';
 import FlyingGrape from './components/FlyingGrape';
 import MessageOverlay from './components/MessageOverlay';
+import InstructionsButton from './components/InstructionsButton';
 import { useCampanadasTimer } from './hooks/useCampanadasTimer';
 import { useAudioController } from './hooks/useAudioController';
 import { useFireworks } from './hooks/useFireworks';
-import { TARGET_DATE, MOUTH_OPEN_DURATION } from './config/constants';
+import {
+  TARGET_DATE,
+  MOUTH_OPEN_DURATION,
+  EARLY_CLICK_MODAL_AUTO_CLOSE_MS,
+  INSTRUCTIONS_MODAL_AUTO_CLOSE_MS
+} from './config/constants';
 import audioService from './services/audioService';
 
 declare const __APP_VERSION__: string;
+
+interface OverlayMessage {
+  text: string;
+  duration: number;
+}
 
 const App: React.FC = () => {
   // Test mode offset
@@ -25,7 +36,7 @@ const App: React.FC = () => {
   // Logic State
   const [isMouthOpen, setIsMouthOpen] = useState(false);
   const [flyingGrapes, setFlyingGrapes] = useState<FlyingGrapeState[]>([]);
-  const [overlayMessage, setOverlayMessage] = useState<string>('');
+  const [overlayMessage, setOverlayMessage] = useState<OverlayMessage | null>(null);
   const [eatenGrapesOrder, setEatenGrapesOrder] = useState<number[]>([]);
   const [grapeStatus, setGrapeStatus] = useState<Record<number, 'correct' | 'incorrect'>>({});
   const [lastCorrectChime, setLastCorrectChime] = useState<number>(0);
@@ -109,10 +120,21 @@ const App: React.FC = () => {
   }, []);
 
   const showEarlyClickMessage = useCallback(() => {
-    setOverlayMessage('¡Aún no ansioso!, espera a que empiecen las campanadas.');
-    setTimeout(() => {
-      setOverlayMessage('');
-    }, 2500);
+    setOverlayMessage({
+      text: '¡Aún no ansioso!, espera a que empiecen las campanadas.',
+      duration: EARLY_CLICK_MODAL_AUTO_CLOSE_MS
+    });
+  }, []);
+
+  const showInstructionsMessage = useCallback(() => {
+    setOverlayMessage({
+      text: 'Vamos a empezar bien el año!!! 🥳 Espera a que empiecen las campanadas y toca cada uva cuando suene la campana.',
+      duration: INSTRUCTIONS_MODAL_AUTO_CLOSE_MS
+    });
+  }, []);
+
+  const handleOverlayClose = useCallback(() => {
+    setOverlayMessage(null);
   }, []);
 
   return (
@@ -147,12 +169,14 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="z-10 flex flex-col items-center w-full max-w-4xl flex-grow justify-center">
 
+        <InstructionsButton onClick={showInstructionsMessage} isVisible={phase !== AppPhase.CELEBRATION} />
+
         {/* Clock & Face Container */}
         <div className="mb-4 relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 transform scale-90 md:scale-100 transition-transform duration-500">
           {/* The Clock is always rendered */}
           <Clock hours={timeState.hours} minutes={timeState.minutes} seconds={timeState.seconds} />
 
-          {/* The Face is absolutely positioned ON TOP of the clock, 
+          {/* The Face is absolutely positioned ON TOP of the clock,
                only visible during CHIMES or CELEBRATION */}
           <div className={`absolute inset-0 z-20 transition-opacity duration-500 ease-in-out ${showFace ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             <CheekyFace
@@ -179,6 +203,11 @@ const App: React.FC = () => {
               </p>
             )
           }
+          <MessageOverlay
+            message={overlayMessage?.text ?? ''}
+            duration={overlayMessage?.duration}
+            onClose={handleOverlayClose}
+          />
         </div >
 
         {/* Grapes Grid & Message Overlay Container */}
@@ -192,7 +221,6 @@ const App: React.FC = () => {
               grapeStatus={grapeStatus}
             />
           </div>
-          <MessageOverlay message={overlayMessage} isVisible={!!overlayMessage} />
         </div>
 
       </main >
