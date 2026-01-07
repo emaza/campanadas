@@ -22,4 +22,4 @@ To run this application on your local machine, follow these steps:
     npm run dev
     ```
 
-The application will be available at `http://localhost:3000`.
+The application will be available at [campanadas.zik.es](https://campanadas.zik.es/).
