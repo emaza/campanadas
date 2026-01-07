@@ -128,7 +128,7 @@ const App: React.FC = () => {
 
   const showInstructionsMessage = useCallback(() => {
     setOverlayMessage({
-      text: 'Espera a que empiecen las campanadas y toca cada uva para comértela en el momento que suenen las campanadas, ni antes ni después. Vamos a empezar bien el año!!! 🥳',
+      text: 'Vamos a empezar bien el año!!! 🥳 Espera a que empiecen las campanadas y toca cada uva cuando suene la campana.',
       duration: INSTRUCTIONS_MODAL_AUTO_CLOSE_MS
     });
   }, []);
