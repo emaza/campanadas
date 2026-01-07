@@ -169,7 +169,7 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="z-10 flex flex-col items-center w-full max-w-4xl flex-grow justify-center">
 
-        <InstructionsButton onClick={showInstructionsMessage} />
+        <InstructionsButton onClick={showInstructionsMessage} isVisible={phase !== AppPhase.CELEBRATION} />
 
         {/* Clock & Face Container */}
         <div className="mb-4 relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 transform scale-90 md:scale-100 transition-transform duration-500">
@@ -203,6 +203,11 @@ const App: React.FC = () => {
               </p>
             )
           }
+          <MessageOverlay
+            message={overlayMessage?.text ?? ''}
+            duration={overlayMessage?.duration}
+            onClose={handleOverlayClose}
+          />
         </div >
 
         {/* Grapes Grid & Message Overlay Container */}
@@ -216,11 +221,6 @@ const App: React.FC = () => {
               grapeStatus={grapeStatus}
             />
           </div>
-          <MessageOverlay
-            message={overlayMessage?.text ?? ''}
-            duration={overlayMessage?.duration}
-            onClose={handleOverlayClose}
-          />
         </div>
 
       </main >

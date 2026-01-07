@@ -2,14 +2,15 @@ import React from 'react';
 
 interface InstructionsButtonProps {
   onClick: () => void;
+  isVisible?: boolean;
 }
 
-const InstructionsButton: React.FC<InstructionsButtonProps> = ({ onClick }) => {
+const InstructionsButton: React.FC<InstructionsButtonProps> = ({ onClick, isVisible = true }) => {
   return (
     <button
       onClick={onClick}
-      className="
-        absolute top-1/2 right-2 md:right-4 lg:right-8 z-20 transform -translate-y-1/2
+      className={`
+        absolute right-2 md:right-4 lg:right-8 z-20 transform -translate-y-1/2
         w-10 h-10 md:w-12 md:h-12
         bg-slate-800 hover:bg-slate-700
         text-slate-300 text-2xl md:text-3xl font-bold
@@ -17,7 +18,8 @@ const InstructionsButton: React.FC<InstructionsButtonProps> = ({ onClick }) => {
         flex items-center justify-center
         transition-all hover:scale-110 active:scale-95
         shadow-lg
-      "
+        ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+      `}
       aria-label="Mostrar instrucciones"
     >
       ?
