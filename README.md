@@ -4,6 +4,8 @@ This is a New Year's countdown application themed around the Spanish tradition o
 
 This project was coded by Jules, an AI software engineer, with a human project manager overseeing the development.
 
+The application is available at [campanadas.zik.es](https://campanadas.zik.es/).
+
 ## Screenshot
 
 ![Application Screenshot](./public/screenshot.png)
@@ -22,4 +24,4 @@ To run this application on your local machine, follow these steps:
     npm run dev
     ```
 
-The application will be available at [campanadas.zik.es](https://campanadas.zik.es/).
+
