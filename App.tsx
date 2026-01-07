@@ -133,6 +133,10 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const handleOverlayClose = useCallback(() => {
+    setOverlayMessage(null);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-between py-8 px-4 overflow-hidden relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
 
@@ -215,6 +219,7 @@ const App: React.FC = () => {
           <MessageOverlay
             message={overlayMessage?.text ?? ''}
             duration={overlayMessage?.duration}
+            onClose={handleOverlayClose}
           />
         </div>
 
