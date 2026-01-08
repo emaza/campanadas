@@ -43,6 +43,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 1. Traer todos los tags del servidor para evitar el error "already exists"
+          git fetch --tags -f
           
           # Usamos la salida del paso anterior
           npm version ${{ steps.bump.outputs.type }} -m "chore: bump version to %s [skip ci]" || {
