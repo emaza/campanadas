@@ -4,19 +4,20 @@ import { AppPhase } from '../types';
 
 interface GrapeGridProps {
   currentChime: number;
-  onEat?: (grapeElement: HTMLButtonElement) => void;
+  onEat?: (grapeNumber: number, grapeElement: HTMLButtonElement) => void;
   onEarlyClick?: () => void;
   phase: AppPhase;
+  grapeStatus: Record<number, 'correct' | 'incorrect'>;
 }
-
-const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat, onEarlyClick, phase }) => {
+const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat, onEarlyClick, phase, grapeStatus }) => {
   const [eatenGrapes, setEatenGrapes] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    if (currentChime === 0) {
+    // Reset eaten grapes when the countdown restarts
+    if (phase !== AppPhase.CHIMES && phase !== AppPhase.CELEBRATION) {
       setEatenGrapes(new Set());
     }
-  }, [currentChime]);
+  }, [phase]);
 
   const handleGrapeClick = (grapeNumber: number, grapeElement: HTMLButtonElement) => {
     if (phase < AppPhase.CHIMES) {
@@ -24,7 +25,6 @@ const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat, onEarlyClick
       return;
     }
 
-    // Only allow eating during the chimes phase
     if (phase === AppPhase.CHIMES) {
       if (eatenGrapes.has(grapeNumber)) return;
 
@@ -34,7 +34,7 @@ const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat, onEarlyClick
       newEaten.add(grapeNumber);
       setEatenGrapes(newEaten);
 
-      if (onEat) onEat(grapeElement);
+      if (onEat) onEat(grapeNumber, grapeElement);
     }
   };
 
@@ -47,39 +47,45 @@ const GrapeGrid: React.FC<GrapeGridProps> = ({ currentChime, onEat, onEarlyClick
             
             // Visual State Logic
             const isEaten = eatenGrapes.has(grapeNumber);
-            
-            // Guide Logic: 
-            // If chime is 0 (Gap), guide to #1. 
-            // If chime is N (1-12), guide to #N.
-            // This highlights the grape currently associated with the bell sound.
+            const status = grapeStatus[grapeNumber];
+
             const targetNumber = currentChime === 0 ? 1 : currentChime;
             const isTarget = grapeNumber === targetNumber;
-
-            // Show pulsing/active style only if it's the target and hasn't been eaten yet.
             const showActiveStyle = isTarget && !isEaten;
 
             return (
-            <div key={index} className="flex flex-col items-center justify-center">
+              <div key={index} className="relative flex flex-col items-center justify-center">
                 <button
-                onClick={(e) => handleGrapeClick(grapeNumber, e.currentTarget)}
-                className={`
+                  data-grape-id={grapeNumber}
+                  onClick={(e) => handleGrapeClick(grapeNumber, e.currentTarget)}
+                  className={`
                     w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center
                     transition-all duration-300 transform cursor-pointer active:scale-90
-                    ${isEaten 
-                    ? 'bg-green-900/30 scale-75 opacity-40 grayscale border-green-900' 
-                    : showActiveStyle 
-                        ? 'bg-gradient-to-br from-green-300 to-green-500 scale-110 shadow-[0_0_25px_rgba(74,222,128,0.8)] animate-pulse border-white' 
+                    ${isEaten
+                      ? 'bg-green-900/30 scale-75 opacity-40 grayscale border-green-900'
+                      : showActiveStyle
+                        ? 'bg-gradient-to-br from-green-300 to-green-500 scale-110 shadow-[0_0_25px_rgba(74,222,128,0.8)] animate-pulse border-white'
                         : 'bg-gradient-to-br from-green-400 to-green-600 shadow-lg border-green-300 hover:scale-105'
                     }
                     border-2 focus:outline-none
-                `}
-                aria-label={`Uva ${grapeNumber}`}
+                  `}
+                  aria-label={`Uva ${grapeNumber}`}
+                  disabled={isEaten}
                 >
-                <span className={`font-bold text-sm md:text-lg ${isEaten ? 'text-gray-500' : 'text-green-950 drop-shadow-sm'}`}>
+                  <span className={`font-bold text-sm md:text-lg ${isEaten ? 'text-gray-500' : 'text-green-950 drop-shadow-sm'}`}>
                     {grapeNumber}
-                </span>
+                  </span>
                 </button>
-            </div>
+                {status && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <img
+                      src={status === 'correct' ? '/check.svg' : '/x.svg'}
+                      alt={status}
+                      className="w-8 h-8 md:w-10 md:h-10 drop-shadow-lg"
+                    />
+                  </div>
+                )}
+              </div>
             );
         })}
         </div>

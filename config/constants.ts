@@ -9,8 +9,12 @@ export const T_GAP_START = -5000;
 export const T_CELEBRATION_START = 12 * CHIME_INTERVAL; // Start of celebration phase
 
 // MOUTH ANIMATION
-export const MOUTH_OPEN_DURATION = 300; // ms
+export const MOUTH_OPEN_DURATION = 1000; // ms
 
 // FIREWORKS CONFIGURATION
 export const FIREWORKS_DURATION = 15 * 1000; // 15 seconds
 export const FIREWORKS_COLORS = ['#FFD700', '#FF0000', '#FFFFFF', '#00FF00', '#0000FF'];
+
+// MESSAGE OVERLAY
+export const INSTRUCTIONS_MODAL_AUTO_CLOSE_MS = 5500;
+export const EARLY_CLICK_MODAL_AUTO_CLOSE_MS = 2000;
