@@ -25,9 +25,22 @@ export const useCampanadasTimer = ({ offsetTime }: UseCampanadasTimerProps) => {
   const [chimeCount, setChimeCount] = useState(0);
   const [timeDiff, setTimeDiff] = useState(0);
 
+  const vibrarTelefono = (pattern) => {
+    console.log("Vibrando", pattern);
+    if ("vibrate" in navigator) {
+      // Intentar vibrar 500ms
+      const exito = navigator.vibrate(pattern);
+      if (!exito) {
+        console.log("La vibración fue bloqueada o no es compatible.");
+      }
+    } else {
+      console.log("Tu navegador no soporta la API de vibración.");
+    }
+  };
+
   useEffect(() => {
     let animationFrameId: number;
-
+    vibrarTelefono([300, 300]);
     const updateTime = () => {
       const now = Date.now() + offsetTime;
       const visualDate = new Date(now);
@@ -68,7 +81,7 @@ export const useCampanadasTimer = ({ offsetTime }: UseCampanadasTimerProps) => {
         const currentChimeIndex = Math.floor(msSinceMidnight / CHIME_INTERVAL);
         setChimeCount(currentChimeIndex + 1);
       } else if (currentPhase !== AppPhase.CELEBRATION) {
-         if (currentPhase === AppPhase.COUNTDOWN) {
+        if (currentPhase === AppPhase.COUNTDOWN) {
           setChimeCount(0);
         }
       }
