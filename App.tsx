@@ -59,6 +59,7 @@ const App: React.FC = () => {
       const startPos = { x: grapeRect.left + grapeRect.width / 2, y: grapeRect.top + grapeRect.height / 2 };
       const endPos = { x: mouthRect.left + mouthRect.width / 2, y: mouthRect.top + mouthRect.height / 2 };
       setFlyingGrapes(prev => [...prev, { id: Date.now(), startPos, endPos }]);
+      vibrarTelefono([200, 200]);
     }
 
     // 2. Scoring Logic
@@ -78,6 +79,18 @@ const App: React.FC = () => {
 
   }, [timeDiff, grapeStatus, lastCorrectChime]);
 
+  const vibrarTelefono = (pattern) => {
+    console.log("Vibrando", pattern);
+    if ("vibrate" in navigator) {
+      // Intentar vibrar 500ms
+      const exito = navigator.vibrate(pattern);
+      if (!exito) {
+        console.log("La vibración fue bloqueada o no es compatible.");
+      }
+    } else {
+      console.log("Tu navegador no soporta la API de vibración.");
+    }
+  };
 
   const startTest = () => {
     audioService.init();
@@ -85,6 +98,7 @@ const App: React.FC = () => {
     const now = Date.now();
     const target = TARGET_DATE.getTime();
     setOffsetTime(target - 40000 - now);
+    vibrarTelefono([200, 200]);
   };
 
   const getPhaseText = () => {
@@ -124,6 +138,7 @@ const App: React.FC = () => {
       text: '¡Aún no ansioso!, espera a que empiecen las campanadas.',
       duration: EARLY_CLICK_MODAL_AUTO_CLOSE_MS
     });
+    vibrarTelefono([200, 200]);
   }, []);
 
   const showInstructionsMessage = useCallback(() => {
@@ -131,6 +146,7 @@ const App: React.FC = () => {
       text: 'Vamos a empezar bien el año!!! 🥳 Espera a que empiecen las campanadas y toca cada uva cuando suene la campana.',
       duration: INSTRUCTIONS_MODAL_AUTO_CLOSE_MS
     });
+    vibrarTelefono([200, 200]);
   }, []);
 
   const handleOverlayClose = useCallback(() => {
@@ -210,7 +226,7 @@ const App: React.FC = () => {
           />
         </div >
 
-        {/* Grapes Grid & Message Overlay Container */}
+        {/* Grapes Grid */}
         <div className="relative">
           <div className={`transition-opacity duration-1000 ${phase === AppPhase.CHIMES || phase === AppPhase.CELEBRATION || phase === AppPhase.GAP ? 'opacity-100' : 'opacity-20'}`}>
             <GrapeGrid

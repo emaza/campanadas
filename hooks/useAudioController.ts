@@ -53,10 +53,23 @@ export const useAudioController = ({ phase, timeDiff }: UseAudioControllerProps)
     if (phase === AppPhase.QUARTERS) {
       const progress = Math.abs(T_QUARTERS_START) - timeDiff;
       const quarterIdx = Math.floor(progress / 3500);
-
+      // vibrarTelefono([200, 200]);
       if (quarterIdx >= 0 && quarterIdx < 4 && quarterIdx !== prevQuarterIndexRef.current) {
         audioService.playQuarter();
         prevQuarterIndexRef.current = quarterIdx;
+      }
+    }
+
+    function vibrarTelefono(pattern) {
+      console.log("Vibrando", pattern);
+      if ("vibrate" in navigator) {
+        // Intentar vibrar 500ms
+        const exito = navigator.vibrate(pattern);
+        if (!exito) {
+          console.log("La vibración fue bloqueada o no es compatible.");
+        }
+      } else {
+        console.log("Tu navegador no soporta la API de vibración.");
       }
     }
 
@@ -67,6 +80,7 @@ export const useAudioController = ({ phase, timeDiff }: UseAudioControllerProps)
 
       if (currentChimeIndex !== prevChimeIndexRef.current && currentChimeIndex < 12) {
         audioService.playChime();
+        // vibrarTelefono([200, 200]);
         prevChimeIndexRef.current = currentChimeIndex;
       }
     }
