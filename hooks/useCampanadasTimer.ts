@@ -40,7 +40,7 @@ export const useCampanadasTimer = ({ offsetTime }: UseCampanadasTimerProps) => {
 
   useEffect(() => {
     let animationFrameId: number;
-    vibrarTelefono([300, 300]);
+    // vibrarTelefono([300, 300]);
     const updateTime = () => {
       const now = Date.now() + offsetTime;
       const visualDate = new Date(now);
