@@ -1,106 +1,101 @@
 import React from 'react';
 
 interface CheekyFaceProps {
-  grapeCount: number; // 0 to 12
-  isEating: boolean;  // Triggers mouth open animation
-  isCelebrating?: boolean; // Triggers kissing animation and cheek reset
-  mouthRef?: React.RefObject<SVGGElement>;
+  grapeCount: number;      // 0 a 12 (uvas comidas)
+  isEating: boolean;       // boca abierta
+  isCelebrating?: boolean; // beso de Año Nuevo
+  mouthRef?: React.RefObject<SVGGElement | null>;
 }
 
+const INK = '#2b2840';
+
+/** La esfera del reloj cobra vida y se come las uvas. */
 const CheekyFace: React.FC<CheekyFaceProps> = ({ grapeCount, isEating, isCelebrating, mouthRef }) => {
-  // Cap the count visually at 12
-  // If celebrating, reset cheeks to normal size (count 0)
-  const safeCount = isCelebrating ? 0 : Math.min(Math.max(grapeCount, 0), 12);
-  
-  // Scale cheeks based on grapes eaten. 
-  // Base scale 1. Reduced growth factor from 0.15 to 0.08 so they don't explode off the face at 12 grapes.
-  const cheekScale = 1 + (safeCount * 0.08);
+  const count = isCelebrating ? 0 : Math.min(Math.max(grapeCount, 0), 12);
+  const cheekScale = 1 + count * 0.075;
+  const sweating = !isCelebrating && count >= 8;
 
-  // Mouth Configuration
-  let mouthElement;
+  let mouth: React.ReactNode;
   let mouthScale = 1;
-
   if (isCelebrating) {
-      // Kissing Face: Small heart-shaped mouth with animation class
-      mouthElement = (
-        <path 
-          d="M 100 155 C 100 155 90 140 90 135 C 90 128 98 128 100 135 C 102 128 110 128 110 135 C 110 140 100 155 100 155 Z" 
-          fill="#e11d48" 
-          className="kiss-anim"
-        />
-      );
-      mouthScale = 1.2; 
+    mouth = (
+      <path
+        d="M100 155 C100 155 90 140 90 135 C90 128 98 128 100 135 C102 128 110 128 110 135 C110 140 100 155 100 155 Z"
+        fill="#c2304a" className="beso"
+      />
+    );
+    mouthScale = 1.2;
   } else if (isEating) {
-      // Open Mouth (Eating): Big dark circle
-      mouthElement = <circle cx="100" cy="140" r="15" fill="#3f0c18" />;
-      mouthScale = 1.5;
+    mouth = <ellipse cx="100" cy="140" rx="15" ry="16" fill="#4a1426" />;
+    mouthScale = 1.5;
   } else {
-      // Normal/Stuffed Mouth: Ellipse that gets smaller as cheeks grow
-      mouthElement = <ellipse cx="100" cy="140" rx="15" ry="8" fill="#be123c" />;
-      // Shrink mouth as cheeks grow to look "full"
-      mouthScale = Math.max(0.5, 1 - (safeCount * 0.05));
+    mouth = <ellipse cx="100" cy="140" rx="15" ry="7" fill="#c2304a" />;
+    mouthScale = Math.max(0.45, 1 - count * 0.05);
   }
 
   return (
-    <div className="w-full h-full flex items-center justify-center transition-all duration-300 animate-in fade-in zoom-in">
-      <style>{`
-        @keyframes kiss {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.3); }
-        }
-        .kiss-anim {
-          animation: kiss 0.6s infinite ease-in-out;
-          transform-origin: center;
-          transform-box: fill-box;
-        }
-      `}</style>
+    <svg viewBox="0 0 200 200" className="h-full w-full drop-shadow-[0_6px_18px_rgba(0,0,0,0.35)]" role="img"
+      aria-label={isCelebrating ? 'El reloj lanza un beso' : `El reloj lleva ${count} uvas en la boca`}>
+      <defs>
+        <radialGradient id="cara" cx="0.5" cy="0.42" r="0.62">
+          <stop offset="0" stopColor="#fffdf6" />
+          <stop offset="1" stopColor="#f0e2bd" />
+        </radialGradient>
+        <radialGradient id="moflete">
+          <stop offset="0" stopColor="#f39a8f" stopOpacity="0.95" />
+          <stop offset="1" stopColor="#f39a8f" stopOpacity="0" />
+        </radialGradient>
+      </defs>
 
-      {/* Head */}
-      <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-2xl">
-        {/* Face Background - Semi transparent to blend with clock if needed, or opaque to cover */}
-        <circle cx="100" cy="100" r="95" fill="#fcd34d" stroke="#b45309" strokeWidth="4" className="shadow-inner" />
-        
-        {/* Left Cheek */}
-        <g style={{ transform: `translate(40px, 110px) scale(${cheekScale}) translate(-40px, -110px)` }} className="transition-transform duration-500 ease-in-out">
-          <circle cx="40" cy="110" r="20" fill="#fb923c" opacity="0.6" />
+      <circle cx="100" cy="100" r="96" fill="#f2b632" />
+      <circle cx="100" cy="100" r="88" fill="url(#cara)" />
+
+      {/* Mofletes que se hinchan con cada uva */}
+      {[40, 160].map((x) => (
+        <g key={x} style={{ transform: `translate(${x}px,112px) scale(${cheekScale}) translate(${-x}px,-112px)` }}
+          className="transition-transform duration-500 ease-out">
+          <circle cx={x} cy="112" r="24" fill="url(#moflete)" />
         </g>
-        
-        {/* Right Cheek */}
-        <g style={{ transform: `translate(160px, 110px) scale(${cheekScale}) translate(-160px, -110px)` }} className="transition-transform duration-500 ease-in-out">
-           <circle cx="160" cy="110" r="20" fill="#fb923c" opacity="0.6" />
+      ))}
+
+      {/* Ojos */}
+      {isEating ? (
+        <g stroke={INK} strokeWidth="4.5" strokeLinecap="round" fill="none">
+          <path d="M54 72 L68 78 L54 84" />
+          <path d="M146 72 L132 78 L146 84" />
         </g>
+      ) : isCelebrating ? (
+        <g stroke={INK} strokeWidth="4.5" strokeLinecap="round" fill="none">
+          <path d="M55 80 Q65 64 75 80" />
+          <path d="M125 80 Q135 64 145 80" />
+        </g>
+      ) : (
+        <g fill={INK}>
+          <circle cx="65" cy="78" r="10" />
+          <circle cx="135" cy="78" r="10" />
+          <circle cx="68" cy="74" r="3" fill="#fff" />
+          <circle cx="138" cy="74" r="3" fill="#fff" />
+        </g>
+      )}
 
-        {/* Eyes */}
-        {isEating ? (
-            // Effort eyes (closed tight lines)
-            <>
-                <path d="M 55 75 L 75 75" stroke="#1e293b" strokeWidth="4" strokeLinecap="round" />
-                <path d="M 125 75 L 145 75" stroke="#1e293b" strokeWidth="4" strokeLinecap="round" />
-            </>
-        ) : isCelebrating ? (
-            // Happy Eyes (inverted arcs)
-            <>
-                 <path d="M 55 75 Q 65 60 75 75" stroke="#1e293b" strokeWidth="4" strokeLinecap="round" fill="none" />
-                 <path d="M 125 75 Q 135 60 145 75" stroke="#1e293b" strokeWidth="4" strokeLinecap="round" fill="none" />
-            </>
-        ) : (
-            // Normal eyes
-            <>
-                <circle cx="65" cy="75" r="10" fill="#1e293b" />
-                <circle cx="135" cy="75" r="10" fill="#1e293b" />
-            </>
-        )}
-        
-        {/* Eyebrows */}
-        <path d="M 50 55 Q 65 40 80 55" stroke="#1e293b" strokeWidth="4" fill="none" style={{ transform: `translateY(${safeCount * -2}px)` }} />
-        <path d="M 120 55 Q 135 40 150 55" stroke="#1e293b" strokeWidth="4" fill="none" style={{ transform: `translateY(${safeCount * -2}px)` }} />
+      {/* Cejas: suben de agobio */}
+      <g stroke={INK} strokeWidth="4" fill="none" strokeLinecap="round"
+        style={{ transform: `translateY(${count * -1.6}px)` }} className="transition-transform duration-300">
+        <path d="M50 55 Q65 42 80 52" />
+        <path d="M120 52 Q135 42 150 55" />
+      </g>
 
-        {/* Mouth */}
-         <g ref={mouthRef} style={{ transform: `translate(100px, 140px) scale(${mouthScale}) translate(-100px, -140px)` }} className="transition-transform duration-300">
-           {mouthElement}
-         </g>
-      </svg>
-    </div>
+      {/* Gota de sudor a partir de la octava */}
+      {sweating && (
+        <path d="M160 48 Q152 62 160 66 Q168 62 160 48 Z" fill="#8fd3ff" stroke="#3a7bb0" strokeWidth="1.5" />
+      )}
+
+      <g ref={mouthRef}
+        style={{ transform: `translate(100px,140px) scale(${mouthScale}) translate(-100px,-140px)` }}
+        className="transition-transform duration-200">
+        {mouth}
+      </g>
+    </svg>
   );
 };
 
