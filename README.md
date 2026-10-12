@@ -8,7 +8,7 @@ The application is available at [campanadas.zik.es](https://campanadas.zik.es/).
 
 ## Screenshot
 
-![Application Screenshot](./public/screenshot.png)
+![Vista previa](./public/og.png)
 
 ## Running the Application
 

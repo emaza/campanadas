@@ -13,8 +13,12 @@ export const MOUTH_OPEN_DURATION = 1000; // ms
 
 // FIREWORKS CONFIGURATION
 export const FIREWORKS_DURATION = 15 * 1000; // 15 seconds
-export const FIREWORKS_COLORS = ['#FFD700', '#FF0000', '#FFFFFF', '#00FF00', '#0000FF'];
+export const FIREWORKS_COLORS = ['#f2b632', '#ffe08a', '#ffffff', '#a3cc45', '#c2304a'];
 
 // MESSAGE OVERLAY
 export const INSTRUCTIONS_MODAL_AUTO_CLOSE_MS = 5500;
-export const EARLY_CLICK_MODAL_AUTO_CLOSE_MS = 2000;
+export const EARLY_CLICK_MODAL_AUTO_CLOSE_MS = 2200;
+
+// SCORING
+// Una uva cuenta si se come durante su campanada; si es en el primer segundo, es "justo a tiempo".
+export const PERFECT_WINDOW_MS = 1000;

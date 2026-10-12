@@ -21,29 +21,4 @@ export interface FlyingGrapeState {
   endPos: { x: number; y: number };
 }
 
-// Type for the canvas-confetti library
-export type ConfettiFunction = (options?: {
-  particleCount?: number;
-  angle?: number;
-  spread?: number;
-  startVelocity?: number;
-  decay?: number;
-  gravity?: number;
-  drift?: number;
-  ticks?: number;
-  origin?: { x: number; y: number };
-  colors?: string[];
-  shapes?: ('square' | 'circle' | 'star')[];
-  zIndex?: number;
-  disableForReducedMotion?: boolean;
-  useWorker?: boolean;
-  resize?: boolean;
-  canvas?: HTMLCanvasElement;
-}) => void;
-
-// Declaration for canvas-confetti
-declare global {
-  interface Window {
-    confetti: ConfettiFunction;
-  }
-}
+export type GrapeResult = 'perfect' | 'good' | 'miss';

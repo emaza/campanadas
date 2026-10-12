@@ -67,6 +67,7 @@ export const useAudioController = ({ phase, timeDiff }: UseAudioControllerProps)
 
       if (currentChimeIndex !== prevChimeIndexRef.current && currentChimeIndex < 12) {
         audioService.playChime();
+        navigator.vibrate?.(60);
         prevChimeIndexRef.current = currentChimeIndex;
       }
     }

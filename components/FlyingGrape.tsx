@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface FlyingGrapeProps {
   id: number;
@@ -7,46 +7,38 @@ interface FlyingGrapeProps {
   onEnd: (id: number) => void;
 }
 
-const ANIMATION_DURATION = 500;
-const DELAY_BEFORE_FADE = 20;
-const FADE_DURATION = 200;
+const DURATION = 450;
 
+/** Uva que vuela en parábola hasta la boca del reloj. */
 const FlyingGrape: React.FC<FlyingGrapeProps> = ({ id, startPos, endPos, onEnd }) => {
-  const [position, setPosition] = useState(startPos);
-  const [visible, setVisible] = useState(true);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Animate to end position
-    requestAnimationFrame(() => {
-      setPosition(endPos);
-    });
-
-    // Start fading out after the grape arrives + a delay
-    const fadeTimer = setTimeout(() => {
-      setVisible(false);
-    }, ANIMATION_DURATION + DELAY_BEFORE_FADE);
-
-    // Remove the component after the fade-out is complete
-    const endTimer = setTimeout(() => {
-      onEnd(id);
-    }, ANIMATION_DURATION + DELAY_BEFORE_FADE + FADE_DURATION);
-
-
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(endTimer);
-    }
+    const el = ref.current;
+    if (!el) return;
+    const dx = endPos.x - startPos.x;
+    const dy = endPos.y - startPos.y;
+    const anim = el.animate(
+      [
+        { transform: 'translate(-50%,-50%) translate(0,0) scale(1)', opacity: 1 },
+        { transform: `translate(-50%,-50%) translate(${dx * 0.5}px, ${dy * 0.5 - 80}px) scale(1.15)`, opacity: 1, offset: 0.5 },
+        { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(0.3)`, opacity: 0.2 },
+      ],
+      { duration: DURATION, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' },
+    );
+    anim.onfinish = () => onEnd(id);
+    return () => anim.cancel();
   }, [id, startPos, endPos, onEnd]);
 
   return (
     <div
-      className="fixed w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full z-50 pointer-events-none"
+      ref={ref}
+      aria-hidden="true"
+      className="pointer-events-none fixed z-50 h-9 w-9 rounded-full"
       style={{
-        left: position.x,
-        top: position.y,
-        transform: 'translate(-50%, -50%) scale(1)',
-        opacity: visible ? 1 : 0,
-        transition: `left ${ANIMATION_DURATION}ms ease-in-out, top ${ANIMATION_DURATION}ms ease-in-out, transform ${ANIMATION_DURATION}ms ease-in-out, opacity ${FADE_DURATION}ms ease-out`,
+        left: startPos.x,
+        top: startPos.y,
+        background: 'radial-gradient(circle at 35% 30%, #e6f7b0 0 18%, #a3cc45 40%, #4b7a1c 100%)',
       }}
     />
   );
